@@ -55,6 +55,7 @@
 (defun tclapply (fn lea amb)
     (if (atom fn)
         (cond
+            ;((eq fn  'car)      (car lea))
             ((eq fn  'car)      (caar lea))
             ((eq fn  'cdr)      (cdar lea))
             ((iscontruct   fn)  (apply fn   lea))
@@ -63,6 +64,23 @@
         )
         ; lambda
         (tcleval    (caddr fn)  (expand_env (cadr fn)  lea amb) )
+    )
+)
+(defun tclmapcar (fun l amb)
+    (if (null l) nil
+        ;(cons  (tcleval (list fun (car l)) amb) 
+        ;       (tclmapcar fun (cdr l) amb))
+        ;(cons  (tclapply fun (car l) amb) (tclmapcar fun (cdr l) amb))
+        ;(cons  (tcleval (list fun (car l)) amb) (tclmapcar fun (cdr l) amb))
+        ;(list (tclapply  fun (list (car l))  amb))
+
+        ;(tclapply  fun (car l)  amb)
+        (cons (tclapply  fun (car l)  amb)
+              (tclmapcar fun (cdr l)  amb)
+        )
+        ;(cons (tclapply  fun (list (car l))  amb)
+        ;      (tclmapcar fun (cdr l) amb)
+        ;)
     )
 )
 
@@ -98,11 +116,20 @@
                     ;TODO
                     ((eq (car exp) 'cond)   (tclcond (cdr exp) amb))
                     ; Formas funcionales  - TODO
-                    ((eq (car exp) 'mapcar)     nil)
+                     ((eq (car exp) 'mapcar)            (tclmapcar  (tcleval (cadr exp) amb)  (tcleval (caddr exp) amb) amb))
+                    ;((eq (car exp) 'mapcar)           (tcleval (caddr exp) amb)) ;;lista de args
+                    ;((eq (car exp) 'mapcar)           (tcleval (cadr exp) amb)) ;;fun
+                    ;((eq (car exp) 'mapcar)           (mapcar (lambda (x) (tclapply (cadr exp) x amb))
+                    ;                                          (tcleval (caddr exp) amb))
+                    ;)
+                    ;((eq (car exp) 'mapcar)     (mapcar (lambda (x) (tclapply (cadr exp) x amb)) 
+                    ;                                    (mapcar ((lambda (x) (tcleval x amb)) amb)  (cddr exp))
+                    ;                            )
+                    ;)
                     ((eq (car exp) 'reduce)     nil)
                     ((eq (car exp) 'apply)      nil)
 
-	                (t    (tclapply  (car exp)  (mapcar (lambda (x) (tcleval x amb)) (cdr exp)) amb ))
+                    (t    (tclapply  (car exp)  (mapcar (lambda (x) (tcleval x amb)) (cdr exp)) amb ))
 	            )
 
             ) ; fin ifatom
@@ -128,6 +155,8 @@
 ;(trace expand_env)
 ;(trace alter_env)
 ;(trace tclcond)
+;(trace tclmapcar)
+
 ;(print (tcleval '(+ 2 1) nil))
 (setq miamb  '(
                 (foo   5)
@@ -137,43 +166,71 @@
                 (milist (a b c d e))
                 (unbool nil)
                 (otral (7 8 9 10))
+                (masuno  (lambda (x) (+ 1 x)))
+                (primero (lambda (x) (car x)))
+                (pares  ((1 2) (3 4)))
+                (par    (8 9) )
                 (t    t )
                 (nil nil) 
               )
 )
 
-;; Tests: estos tests deben devolver T
-; prueba literal
+; Tests: estos tests deben devolver T
+;; prueba literal
 ;(print (eq (tcleval 'foo miamb)  5 ))
 ;; prueba suma literal y variable
 ;(print (eq     (tcleval '(+ 1 mivar) miamb) 8))
-; prueba suma de variables
+;;; prueba suma de variables
 ;(print (eq (tcleval '(+ foo mivar) miamb) 12))
-;; prueba funcion definida en el ambiente
+;;; prueba funcion definida en el ambiente
 ;(print (eq (tcleval '(fun 4 7) miamb) 16))
-;;; prueba car
-;(print (eq (tcleval '(car '(i j k)) miamb) 'i))
-;;; prueba cadr
-;(print (eq (tcleval '(car (cdr '(i j k))) miamb) 'j))
+;; prueba car
+(print (eq (tcleval '(car '(i j k)) miamb) 'i))
+;; prueba cadr
+(print (eq (tcleval '(car (cdr '(i j k))) miamb) 'j))
 ;;; prueba car con lista de ambiente
-;(print  (eq (tcleval '(car milist) miamb) 'a))
+(print  (eq (tcleval '(car milist) miamb) 'a))
 ;; prueba or
-;(print (tcleval '(or t t) miamb))
-;(print (tcleval '(or t unbool) miamb))
-;(print (tcleval '(not (or nil unbool)) miamb))
+(print (tcleval '(or t t) miamb))
+(print (tcleval '(or t unbool) miamb))
+(print (tcleval '(not (or nil unbool)) miamb))
 ;; prueba constructores
 ;(print (eqlist (tcleval '(cons foo milist) miamb) '(5 a b c d e)  ))
 ;(print (eqlist (tcleval '(append otral  milist) miamb) '(7 8 9 10 a b c d e)  ))
 ;(print (eqlist (tcleval '(list foo foo bar) miamb) '(5 5 A) ))
 ;; prueba cond
-(print (eq 0 (tcleval    '(cond 
-                    ((and t unbool) 5)
-                    ((eq  'A bar)   0)
-                    (t              1)
-                    )
-                    
-               miamb
-              )
-       )
-)
+;(print (eq 0 (tcleval    '(cond 
+;                    ((and t unbool) 5)
+;                    ((eq  'A bar)   0)
+;                    (t              1)
+;                    )
+;                    
+;               miamb
+;              )
+;       )
+;)
+;
+;;; prueba mapcar
+;(print 
+;   (eqlist 
+;        (tcleval    '(mapcar primero pares) miamb)
+;        '(1 3)
+;   )
+;)
+;
+;
+;(print 
+;   (eqlist 
+;        (tcleval    '(mapcar 'car pares) miamb)
+;        '(1 3)
+;   )
+;)
+;
+;
+;(print 
+;   (eqlist
+;        (tcleval    '(mapcar 'car '((a b c) (d e f))) miamb)
+;        '(a d)
+;   )
+;)
 
