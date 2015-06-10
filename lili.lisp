@@ -29,7 +29,6 @@
      (cons (list name val) env)  ; agregarla
  )
 )
-(trace alter_env)
 
 (defun replace_in_env (name val env)
     (if (eq name (caar env))
@@ -42,17 +41,18 @@
    (belongs x '(+ - * / and or eq))
 )
 
+(defun iscontruct (x)
+   (belongs x '(cons list append))
+)
+
 
 (defun tclapply (fn lea amb)
     (if (atom fn)
         (cond
-            ((eq fn 'cons)   (cons (car lea) (cadr lea)))
-            ((eq fn  'car)   (caar lea))
-            ((eq fn  'cdr)   (cdar lea))
-            ((isarithmetic fn)  (apply fn lea))
-            ;((isarithmetic fn)  'ARIT)
-            ;(t 4)
-            ;TODO: aritmetic, not, functional forms, user defined functions
+            ((eq fn  'car)      (caar lea))
+            ((eq fn  'cdr)      (cdar lea))
+            ((iscontruct   fn)  (apply fn   lea))
+            ((isarithmetic fn)  (apply fn   lea))
             (t              (tclapply   (lookup fn amb) lea amb))
         )
         ; lambda
@@ -77,8 +77,6 @@
 	                                        )
 	                )
 
-	                ; TODO or
-	                ;(cond nil)
 	                ((eq (car exp) 'lambda) exp)
 	                ((eq (car exp) 'and )   (if (null (tcleval (cadr exp) amb))
 	                                            nil
@@ -86,13 +84,18 @@
 	                                        )
 	                )
 	                ((eq (car exp)   'or)    (if (null (tcleval (cadr exp) amb))
-	                                            (tcleval (caddr) amb)
+	                                            (tcleval (caddr exp) amb)
 	                                            t
 	                                        )
                     )
-                    
-                    ; car, cdr
-                    ;((belongs (car exp) '(car cdr))  (apply (car exp) (cdr exp)))
+                    ((eq (car exp)  'not)   (not (tcleval (cdr exp) amb)))
+                    ;TODO
+                    ((eq (car exp) 'cond)    nil)
+                    ; Formas funcionales  - TODO
+                    ((eq (car exp) 'mapcar)     nil)
+                    ((eq (car exp) 'reduce)     nil)
+                    ((eq (car exp) 'apply)     nil)
+
 	                (t    (tclapply  (car exp)  (mapcar (lambda (x) (tcleval x amb)) (cdr exp)) amb ))
 	            )
 
@@ -102,10 +105,22 @@
     
 ) ; fin defun
 
-(trace tcleval)
-(trace tclapply)
-(trace belongs)
-(trace expand_env)
+(defun eqlist (l1 l2)
+  (cond
+     ((and (null l1) (null l2)) t)
+     ((null l1) nil)
+     ((null l2) nil)
+     ((eq  (car l1) (car l2))   (eqlist (cdr l1) (cdr l2)))
+     (t nil)
+  )  
+) 
+
+;(trace tcleval)
+;(trace tclapply)
+;(trace belongs)
+;(trace lookup)
+;(trace expand_env)
+;(trace alter_env)
 ;(print (tcleval '(+ 2 1) nil))
 (setq miamb  '(
                 (foo   5)
@@ -113,23 +128,35 @@
                 (bar   A)
                 (fun    (lambda (x y) (+ (+ x 5) y)))
                 (milist (a b c d e))
+                (unbool nil)
+                (otral (7 8 9 10))
+                (t    t )
+                (nil nil) 
               )
 )
 
-;prueba literal
+;; Tests: estos tests deben devolver T
+; prueba literal
 ;(print (eq (tcleval 'foo miamb)  5 ))
-;prueba suma literal y variable
-;(print (eq     (tcleval '(+ 1 'mivar) miamb) 8))
-;prueba funcion definida en el ambiente
+;; prueba suma literal y variable
+;(print (eq     (tcleval '(+ 1 mivar) miamb) 8))
+; prueba suma de variables
+(print (eq (tcleval '(+ foo mivar) miamb) 12))
+;; prueba funcion definida en el ambiente
 ;(print (eq (tcleval '(fun 4 7) miamb) 16))
-;prueba car
+;;; prueba car
 ;(print (eq (tcleval '(car '(i j k)) miamb) 'i))
-;prueba cadr
+;;; prueba cadr
 ;(print (eq (tcleval '(car (cdr '(i j k))) miamb) 'j))
-
-
-
-
-
+;;; prueba car con lista de ambiente
+;(print  (eq (tcleval '(car milist) miamb) 'a))
+;; prueba or
+;(print (tcleval '(or t t) miamb))
+;(print (tcleval '(or t unbool) miamb))
+;(print (tcleval '(not (or nil unbool)) miamb))
+;; prueba constructores
+(print (eqlist (tcleval '(cons foo milist) miamb) '(5 a b c d e)  ))
+(print (eqlist (tcleval '(append otral  milist) miamb) '(7 8 9 10 a b c d e)  ))
+(print (eqlist (tcleval '(list foo foo bar) miamb) '(5 5 A) ))
 
 
