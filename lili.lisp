@@ -45,6 +45,12 @@
    (belongs x '(cons list append))
 )
 
+(defun tclcond (l amb)
+    (if (tcleval (caar l) amb)
+        (tcleval (cadar l) amb)
+        (tclcond  (cdr l) amb)
+    )
+)
 
 (defun tclapply (fn lea amb)
     (if (atom fn)
@@ -90,11 +96,11 @@
                     )
                     ((eq (car exp)  'not)   (not (tcleval (cdr exp) amb)))
                     ;TODO
-                    ((eq (car exp) 'cond)    nil)
+                    ((eq (car exp) 'cond)   (tclcond (cdr exp) amb))
                     ; Formas funcionales  - TODO
                     ((eq (car exp) 'mapcar)     nil)
                     ((eq (car exp) 'reduce)     nil)
-                    ((eq (car exp) 'apply)     nil)
+                    ((eq (car exp) 'apply)      nil)
 
 	                (t    (tclapply  (car exp)  (mapcar (lambda (x) (tcleval x amb)) (cdr exp)) amb ))
 	            )
@@ -121,6 +127,7 @@
 ;(trace lookup)
 ;(trace expand_env)
 ;(trace alter_env)
+;(trace tclcond)
 ;(print (tcleval '(+ 2 1) nil))
 (setq miamb  '(
                 (foo   5)
@@ -141,7 +148,7 @@
 ;; prueba suma literal y variable
 ;(print (eq     (tcleval '(+ 1 mivar) miamb) 8))
 ; prueba suma de variables
-(print (eq (tcleval '(+ foo mivar) miamb) 12))
+;(print (eq (tcleval '(+ foo mivar) miamb) 12))
 ;; prueba funcion definida en el ambiente
 ;(print (eq (tcleval '(fun 4 7) miamb) 16))
 ;;; prueba car
@@ -155,8 +162,18 @@
 ;(print (tcleval '(or t unbool) miamb))
 ;(print (tcleval '(not (or nil unbool)) miamb))
 ;; prueba constructores
-(print (eqlist (tcleval '(cons foo milist) miamb) '(5 a b c d e)  ))
-(print (eqlist (tcleval '(append otral  milist) miamb) '(7 8 9 10 a b c d e)  ))
-(print (eqlist (tcleval '(list foo foo bar) miamb) '(5 5 A) ))
-
+;(print (eqlist (tcleval '(cons foo milist) miamb) '(5 a b c d e)  ))
+;(print (eqlist (tcleval '(append otral  milist) miamb) '(7 8 9 10 a b c d e)  ))
+;(print (eqlist (tcleval '(list foo foo bar) miamb) '(5 5 A) ))
+;; prueba cond
+(print (eq 0 (tcleval    '(cond 
+                    ((and t unbool) 5)
+                    ((eq  'A bar)   0)
+                    (t              1)
+                    )
+                    
+               miamb
+              )
+       )
+)
 
