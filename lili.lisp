@@ -112,21 +112,17 @@
 	                                        )
 	                )
 	                ((eq (car exp)   'or)    (if (null (tcleval (cadr exp) amb))
-	                                            (tcleval (caddr exp) amb)
-	                                            t
-	                                        )
-                    )
-                    ((eq (car exp)  'not)   (not (tcleval (cdr exp) amb)))
-                    ;TODO
-                    ((eq (car exp) 'cond)   (tclcond (cdr exp) amb))
-                    ; Formas funcionales  - TODO
-                    ((eq (car exp) 'mapcar)            (tclmapcar  (cadr exp)  (car (evallist (cddr exp) amb))  amb))
-                    ;((eq (car exp) 'mapcar)            (tclmapcar  (tcleval (cadr exp) amb)  (evallist (caddr exp) amb) amb))
+	                                             (tcleval (caddr exp) amb)
+	                                             t
+	                                         )
+                        )
+                        ((eq (car exp)  'not)       (not (tcleval (cdr exp) amb)))
+                        ((eq (car exp) 'cond)       (tclcond    (cdr exp) amb))
+                        ((eq (car exp) 'mapcar)     (tclmapcar  (cadr exp)  (car (evallist (cddr exp) amb))  amb))
+                        ((eq (car exp) 'reduce)     (tclreduce  (cadr exp)  (car (evallist (cddr exp) amb))  amb) )
+                        ((eq (car exp) 'apply)      (tclapply   (cadr exp)  (cddr exp) amb))
 
-                    ((eq (car exp) 'reduce)     (tclreduce (cadr exp)  (car (evallist (cddr exp) amb))  amb) )
-                    ((eq (car exp) 'apply)      (tclapply (cadr exp) (cddr exp) amb))
-
-                    (t    (tclapply  (car exp)  (mapcar (lambda (x) (tcleval x amb)) (cdr exp)) amb ))
+                        (t    (tclapply  (car exp)  (mapcar (lambda (x) (tcleval x amb)) (cdr exp)) amb ))
 	            ) ; fin cond
 
             ) ; fin ifatom
