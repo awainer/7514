@@ -53,13 +53,6 @@
     )
 )
 
-;(defun while (con fun pgm ent mem sal)
-;    (if (ejec con ent mem sal)
-;        (ejec (append fun pgm) ent mem sal)
-;        (ejec pgm ent mem sal)
-;    )
-;)
-
 (defun suma nil)
 (trace suma)
 ;(trace while)
@@ -111,7 +104,7 @@
 
 
 (setq pgm1 '(
-              (int b)
+              (int b a )
               (main
                     (scanf  b)
                ;     (printf b)
@@ -126,18 +119,15 @@
 )
 
 (setq pgm2 '(
-              (int a b = 5)
+              (int a 3  b  5)
               (main
                 (
-                    (scanf a)
-                    (b = b + a)
-                    (printf a + b)
-                    (while (a < b)
-                           (  (a ++)
-                              (printf a)
-                           )
+                 (if (b < a)  ( 
+                       (printf 0)  
+                 )  else ( 
+                     ( printf 1) 
                     )
-                    ;(if (a > b)   ()  else () )
+                 )
                 )
               )
             )
@@ -148,4 +138,5 @@
 (trace ejec)
 (trace scanf)
 (trace run)
-(run pgm1 ent1)
+;(run pgm2 ent1)
+(run pgm2 nil)
