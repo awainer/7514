@@ -73,7 +73,14 @@
     )
 )
 
-(defun simplemapcar (fun amb l) nil)
+(defun simplemapcar (fun amb l) 
+  (if (null l) nil
+      (cons (tclapply  fun  (list (car l)) amb)
+             (simplemapcar fun amb  (cdr l))
+      )
+  )
+)
+
 ;(defun multimapcar (fun amb l &optional (contador (cons 1 l))) 
 (defun multimapcar (fun amb l &optional (contador  l)) 
   (if (null contador) nil
@@ -269,8 +276,8 @@
 ;)
 
 (print
-        (tcleval  '(mapcar list  '(a b c) '(d e f)) nil)
-;         (tcleval  '(mapcar car   '( (1 2) (3 4) )) nil)
+;        (tcleval  '(mapcar list  '(a b c) '(d e f)) nil)
+         (tcleval  '(mapcar car   '( (1 2) (3 4) )) nil)
 
 
 )
