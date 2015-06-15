@@ -93,6 +93,12 @@
                                          (ejec (cdr pgm) ent mem sal)  ; salgo del bloque
                                        )
             )
+
+            ((eq (caar pgm) 'if)       (if  (ejec (list (cadar pgm)) ent mem sal) 
+                                            (ejec  (caddar pgm) ent mem sal) 
+                                            (ejec (cadr (cdddar pgm)) ent mem sal)
+                                       )
+            )
                                          
             (t  sal)
           )
@@ -119,16 +125,9 @@
 )
 
 (setq pgm2 '(
-              (int a 3  b  5)
+              (int a = 2  b =  5)
               (main
-                (
-                 (if (b < a)  ( 
-                       (printf 0)  
-                 )  else ( 
-                     ( printf 1) 
-                    )
-                 )
-                )
+                 (if (b < a)  ((printf 0))  else (( printf 1)))
               )
             )
 )
