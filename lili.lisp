@@ -269,7 +269,7 @@
 ;)
 
 (print
-        (tcleval  '(mapcar list  '(a b c) '(d e f) '(g h i) ) nil)
+        (tcleval  '(mapcar list  '(a b c) '(d e f)) nil)
 ;         (tcleval  '(mapcar car   '( (1 2) (3 4) )) nil)
 
 
