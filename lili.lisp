@@ -72,13 +72,52 @@
           (t    (cons  (tcleval (car l) amb) (evallist (cdr l) amb)))
     )
 )
-(defun tclmapcar (funct l amb)
-    (if (null l) nil
-        (cons (tclapply  funct (list(car l))  amb)
-              (tclmapcar funct (cdr l)  amb)
-        )
+
+(defun simplemapcar (fun amb l) nil)
+;(defun multimapcar (fun amb l &optional (contador (cons 1 l))) 
+(defun multimapcar (fun amb l &optional (contador  l)) 
+  (if (null contador) nil
+    (cons 
+        (tclapply fun   (mapcar 'car  l) amb )
+        (multimapcar fun amb (mapcar 'cdr  l) (cdr contador))
+    )
+  )
+
+)
+(trace simplemapcar)
+(trace multimapcar)
+
+(defun tclmapcar (funct amb &rest l )
+    (if (null (caar l))  nil
+      (if  (eq 1 (length   (car l)))
+        (simplemapcar funct amb (caar l))
+        (multimapcar  funct amb (car l))
+      )
     )
 )
+;        (if (eq (length  (car l)) 1) 
+;            ;(cons 
+;            ;    (tclapply funct  (mapcar 'car  l) amb )
+;            ;    (tclmapcar funct amb  (mapcar 'cdr  l))
+;            ;) 
+;            (cons (tclapply  funct  (list (caar l)) amb)
+;                   ;(cdar l)
+;                   (tclmapcar funct amb  (cdar l))
+;            )
+;       
+;            88
+;        )
+;    )
+;    (mapcar (append
+;        (lambda (x) (tclapply funct  x amb)))
+;        l     
+;    ) 
+;    (if (null l) nil
+;        (cons (tclapply  funct (list(car l))  amb)
+;              (tclmapcar funct (cdr l)  amb)
+;        )
+;    )
+;)
 
 (defun tclreduce (funct l amb)
     
@@ -118,7 +157,7 @@
                         )
                         ((eq (car exp)  'not)       (not (tcleval (cdr exp) amb)))
                         ((eq (car exp) 'cond)       (tclcond    (cdr exp) amb))
-                        ((eq (car exp) 'mapcar)     (tclmapcar  (cadr exp)  (car (evallist (cddr exp) amb))  amb))
+                        ((eq (car exp) 'mapcar)     (tclmapcar  (cadr exp)  amb  (evallist (cddr exp) amb) ))
                         ((eq (car exp) 'reduce)     (tclreduce  (cadr exp)  (car (evallist (cddr exp) amb))  amb) )
                         ((eq (car exp) 'apply)      (tclapply   (cadr exp)  (cddr exp) amb))
 
@@ -141,14 +180,15 @@
   )  
 ) 
 
-;(trace tcleval)
-;(trace tclapply)
+(trace tcleval)
+(trace tclapply)
+(trace evallist)
 ;(trace belongs)
 ;(trace lookup)
 ;(trace expand_env)
 ;(trace alter_env)
 ;(trace tclcond)
-;(trace tclmapcar)
+(trace tclmapcar)
 ;(trace tclreduce)
 ;(print (tcleval '(+ 2 1) nil))
 (setq miamb  '(
@@ -171,64 +211,73 @@
 
 ;;; Tests: estos tests deben devolver T
 ; prueba literal
-(print (eq (tcleval 'foo miamb)  5 ))
-;; prueba suma literal y variable
-(print (eq     (tcleval '(+ 1 mivar) miamb) 8))
-;;; prueba suma de variables
-(print (eq (tcleval '(+ foo mivar) miamb) 12))
-;;; prueba funcion definida en el ambiente
-(print (eq (tcleval '(fun 4 7) miamb) 16))
-;; prueba car
-(print (eq (tcleval '(car '(i j k)) miamb) 'i))
-;;; prueba cadr
-(print (eq (tcleval '(car (cdr '(i j k))) miamb) 'j))
-;;;; prueba car con lista de ambiente
-(print  (eq (tcleval '(car milist) miamb) 'a))
-;;; prueba or
-(print (tcleval '(or t t) miamb))
-(print (tcleval '(or t unbool) miamb))
-(print (tcleval '(not (or nil unbool)) miamb))
-;; prueba constructores
-(print (eqlist (tcleval '(cons foo milist) miamb) '(5 a b c d e)  ))
-(print (eqlist (tcleval '(append otral  milist) miamb) '(7 8 9 10 a b c d e)  ))
-(print (eqlist (tcleval '(list foo foo bar) miamb) '(5 5 A) ))
-;; prueba cond
-(print (eq 0 (tcleval    '(cond 
-                            ((and t unbool) 5)
-                            ((eq  'A bar)   0)
-                            (t              1)
-                          )
-                    
-               miamb
-              )
-       )
-)
+;(print (eq (tcleval 'foo miamb)  5 ))
+;;; prueba suma literal y variable
+;(print (eq     (tcleval '(+ 1 mivar) miamb) 8))
+;;;; prueba suma de variables
+;(print (eq (tcleval '(+ foo mivar) miamb) 12))
+;;;; prueba funcion definida en el ambiente
+;(print (eq (tcleval '(fun 4 7) miamb) 16))
+;;; prueba car
+;(print (eq (tcleval '(car '(i j k)) miamb) 'i))
+;;;; prueba cadr
+;(print (eq (tcleval '(car (cdr '(i j k))) miamb) 'j))
+;;;;; prueba car con lista de ambiente
+;(print  (eq (tcleval '(car milist) miamb) 'a))
+;;;; prueba or
+;(print (tcleval '(or t t) miamb))
+;(print (tcleval '(or t unbool) miamb))
+;(print (tcleval '(not (or nil unbool)) miamb))
+;;; prueba constructores
+;(print (eqlist (tcleval '(cons foo milist) miamb) '(5 a b c d e)  ))
+;(print (eqlist (tcleval '(append otral  milist) miamb) '(7 8 9 10 a b c d e)  ))
+;(print (eqlist (tcleval '(list foo foo bar) miamb) '(5 5 A) ))
+;;; prueba cond
+;(print (eq 0 (tcleval    '(cond 
+;                            ((and t unbool) 5)
+;                            ((eq  'A bar)   0)
+;                            (t              1)
+;                          )
+;                    
+;               miamb
+;              )
+;       )
+;)
 
 ;; prueba mapcar
-(print 
-   (eqlist 
-        (tcleval    '(mapcar primero pares) miamb)
-        '(1 3)
-   )
+;(print 
+;   (eqlist 
+;        (tcleval    '(mapcar primero pares) miamb)
+;        '(1 3)
+;   )
+;)
+;
+;
+;(print 
+;   (eqlist 
+;        (tcleval    '(mapcar car pares) miamb)
+;        '(1 3)
+;   )
+;)
+;
+;
+;(print 
+;;   (eqlist
+;        (tcleval    '(mapcar car '((a b c) (d e f))) nil)
+;;        '(a d)
+;;   )
+;)
+
+(print
+        (tcleval  '(mapcar list  '(a b c) '(d e f) '(g h i) ) nil)
+;         (tcleval  '(mapcar car   '( (1 2) (3 4) )) nil)
+
+
 )
 
-
-(print 
-   (eqlist 
-        (tcleval    '(mapcar car pares) miamb)
-        '(1 3)
-   )
-)
-
-
-(print 
-   (eqlist
-        (tcleval    '(mapcar car '((a b c) (d e f))) nil)
-        '(a d)
-   )
-)
-; prueba apply
-(print (eq (tcleval '(apply masuno 5) miamb) 6))
-;; test reduce
-(print (eq (tcleval '(reduce +  otral) miamb) 34))
-(print (eq (tcleval '(reduce *  '(2 2 2 2)) miamb) 16))
+;(print         (tcleval  '(mapcar car   '(a b c) '(d e f)) nil))
+;; prueba apply
+;(print (eq (tcleval '(apply masuno 5) miamb) 6))
+;;; test reduce
+;(print (eq (tcleval '(reduce +  otral) miamb) 34))
+;(print (eq (tcleval '(reduce *  '(2 2 2 2)) miamb) 16))
