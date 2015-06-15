@@ -37,6 +37,14 @@
     )
 )
 
+(defun belongs (x l)
+  (cond
+    ((null l      ) nil)
+    ((eq x (car l))   t)
+    (t      (belongs x (cdr l)))
+  ) 
+) 
+
 (defun scanf (name mem val)
     (cond
         ((null mem)             (list  name val))
@@ -45,18 +53,34 @@
     )
 )
 
+;(defun while (con fun pgm ent mem sal)
+;    (if (ejec con ent mem sal)
+;        (ejec (append fun pgm) ent mem sal)
+;        (ejec pgm ent mem sal)
+;    )
+;)
+
 (defun suma nil)
 (trace suma)
+;(trace while)
+
 (defun ejec (pgm ent mem &optional (sal nil))
     (if (null pgm)
-      mem ; temp
+      (reverse sal)
       (if (atom (car pgm))
         (if (numberp (car pgm))
             (car pgm)
             (lookup (car pgm) mem)
         )
         (cond
-            ((eq  (caar pgm) 'scanf)     (ejec   (cdr pgm)   (cdr ent)   (scanf  (cadar pgm) mem (car ent)) sal))
+            ((eq  (caar pgm) 'scanf)     (ejec (cdr pgm) (cdr ent)   (scanf  (cadar pgm) mem (car ent)) sal))
+            ((eq  (caar pgm) 'printf)    (ejec (cdr pgm)  ent  mem  (cons
+                                                                        (ejec (cdar pgm) ent mem)
+                                                                     sal
+                                                                    )
+                                         )
+            )
+                                    
             ((eq  (cadar pgm) '=    )    (ejec   (cdr pgm)   ent         (scanf  (caar pgm)  
                                                                                  mem 
                                                                                  (ejec (list (cddar pgm)) ent mem sal) 
@@ -65,10 +89,19 @@
             )
 
 
-            ((eq  (cadar pgm) '+  )    ( + (ejec  (list(caar pgm)) ent mem sal)
-                                           (ejec  (list(caddar pgm)) ent mem sal)))
+            ((belongs  (cadar pgm) '(+ - * / < > <= >=))    (apply (cadar pgm) 
+                                                                (list  (ejec  (list(caar pgm)) ent mem sal)
+                                                                        (ejec (list(caddar pgm)) ent mem sal))
+                                                            )
+            )
+
+            ((eq (caar pgm) 'while)    (if  (ejec (list (cadar pgm)) ent mem sal)
+                                         (ejec (append (caddar pgm) pgm) ent mem sal) ; appendeo al cuerpo el bloque del while
+                                         (ejec (cdr pgm) ent mem sal)  ; salgo del bloque
+                                       )
+            )
                                          
-            (t  mem)
+            (t  sal)
           )
        )
     )
@@ -80,8 +113,14 @@
 (setq pgm1 '(
               (int b)
               (main
-                    (scanf a)
-                    (b = 3 + a)
+                    (scanf  b)
+               ;     (printf b)
+                    (while (b < 5)
+                        ( (b = b + 1)
+                          (printf b)
+                        )
+                    )
+                    (printf ( 1 + 1 ))
               )
             )
 )
@@ -104,7 +143,7 @@
             )
 )
 
-(setq ent1 '(6 5 3 6))
+(setq ent1 '(0 5 3 6))
 (trace lookup)
 (trace ejec)
 (trace scanf)
