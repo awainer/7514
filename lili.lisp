@@ -82,17 +82,16 @@
 )
 
 ;(defun multimapcar (fun amb l &optional (contador (cons 1 l))) 
-(defun multimapcar (fun amb l &optional (contador  l)) 
-  (if (null contador) nil
+;(defun multimapcar (fun amb l &optional (contador  l)) 
+(defun multimapcar (fun amb l) 
+  (if (null (car l)) nil
     (cons 
         (tclapply fun   (mapcar 'car  l) amb )
-        (multimapcar fun amb (mapcar 'cdr  l) (cdr contador))
+        (multimapcar fun amb (mapcar 'cdr  l) )
     )
   )
 
 )
-(trace simplemapcar)
-(trace multimapcar)
 
 (defun tclmapcar (funct amb &rest l )
     (if (null (caar l))  nil
@@ -187,17 +186,19 @@
   )  
 ) 
 
-(trace tcleval)
-(trace tclapply)
-(trace evallist)
+;(trace tcleval)
+;(trace tclapply)
+;(trace evallist)
 ;(trace belongs)
 ;(trace lookup)
 ;(trace expand_env)
 ;(trace alter_env)
 ;(trace tclcond)
-(trace tclmapcar)
+;(trace tclmapcar)
 ;(trace tclreduce)
 ;(print (tcleval '(+ 2 1) nil))
+(trace simplemapcar)
+(trace multimapcar)
 (setq miamb  '(
                 (foo   5)
                 (mivar 7)
@@ -276,10 +277,20 @@
 ;)
 
 (print
-;        (tcleval  '(mapcar list  '(a b c) '(d e f)) nil)
-         (tcleval  '(mapcar car   '( (1 2) (3 4) )) nil)
+         (tcleval  '(mapcar car   '( (1 2) (3 4) (5 6))) nil)
 
 
+)
+
+(print 
+          (tcleval  '(mapcar list  '(a b c d ) '(e f g h)  ) nil)
+)
+(print 
+        (tcleval  '(mapcar list  '(a b c) '(d e f) '(g h i) ) nil)
+)
+
+(print 
+        (tcleval  '(mapcar list  '(a b c) '(d e f) '(g h i) '(j k l) ) nil)
 )
 
 ;(print         (tcleval  '(mapcar car   '(a b c) '(d e f)) nil))
