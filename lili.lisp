@@ -197,8 +197,8 @@
 ;(trace tclmapcar)
 ;(trace tclreduce)
 ;(print (tcleval '(+ 2 1) nil))
-(trace simplemapcar)
-(trace multimapcar)
+;(trace simplemapcar)
+;(trace multimapcar)
 (setq miamb  '(
                 (foo   5)
                 (mivar 7)
@@ -210,6 +210,7 @@
                 (masuno  (lambda (x) (+ 1 x)))
                 (primero (lambda (x) (car x)))
                 (pares  ((1 2) (3 4)))
+                (letras ( (a b c d) (e f g h) (i j k l)))
                 (par    (8 9) )
                 (t    t )
                 (nil nil) 
@@ -276,23 +277,23 @@
 ;;   )
 ;)
 
-(print
-         (tcleval  '(mapcar car   '( (1 2) (3 4) (5 6))) nil)
-
-
-)
-
-(print 
-          (tcleval  '(mapcar list  '(a b c d ) '(e f g h)  ) nil)
-)
-(print 
-        (tcleval  '(mapcar list  '(a b c) '(d e f) '(g h i) ) nil)
-)
-
-(print 
-        (tcleval  '(mapcar list  '(a b c) '(d e f) '(g h i) '(j k l) ) nil)
-)
-
+;(print
+;         (tcleval  '(mapcar car   '( (1 2) (3 4) (5 6))) nil)
+;
+;
+;)
+;
+;(print 
+;          (tcleval  '(mapcar list  '(a b c d ) '(e f g h)  ) nil)
+;)
+;(print 
+;        (tcleval  '(mapcar list  '(a b c) '(d e f) '(g h i) ) nil)
+;)
+;
+;(print 
+;        (tcleval  '(mapcar list  '(a b c) '(d e f) '(g h i) '(j k l) ) nil)
+;)
+;
 ;(print         (tcleval  '(mapcar car   '(a b c) '(d e f)) nil))
 ;; prueba apply
 ;(print (eq (tcleval '(apply masuno 5) miamb) 6))
