@@ -44,7 +44,7 @@
 
         ((eq operador '&&)      (and (tobool operando1) (tobool operando2)))
         ((eq operador '||)      (or  (tobool operando1) (tobool operando2)))
-        ((eq operador '%)       (mod (tobool operando1) (tobool operando2)))
+        ((eq operador '%)       (mod operando1 operando2))
         ((eq operador '!=)      (not (eq operando1 operando2)))
         ((eq operador '==)      (eq operando1 operando2))
         (t nil) ;TODO 
@@ -118,10 +118,9 @@
 (defun resolve_exp_vars (expr mem)
     (if (null expr) 
         nil
-        (cons (if (or (numberp (car expr)) (esoperador (car expr)))
+        (if (or (numberp (car expr)) (esoperador (car expr)))
                   (cons (car expr) (resolve_exp_vars (cdr expr) mem))
                   (cons (lookup (car expr) mem) (resolve_exp_vars (cdr expr) mem))
-              )
         )
     )
 )       
@@ -155,7 +154,7 @@
                                     
             ((eq  (cadar pgm) '=    )    (ejec   (cdr pgm)   ent         (scanf  (caar pgm)  
                                                                                  mem 
-                                                                                 (resolve_exp_vars (evaluar  (cddar pgm) mem) mem)
+                                                                                 (evaluar (resolve_exp_vars (cddar pgm) mem ) mem)
                                                                          )
                                           sal)
             )
@@ -167,9 +166,8 @@
             ;                                                )
             ;)
 
-            ((eq (caar pgm) 'while)    (if  (tobool (evaluar  (cadar pgm)  mem))
+            ((eq (caar pgm) 'while)    (if  (tobool (evaluar (resolve_exp_vars  (cadar pgm) mem)  mem))
                                          (ejec (append (cddar pgm) pgm) ent mem sal) ; appendeo al cuerpo el bloque del while
-                                         ;(ejec (append (caddar pgm) pgm) ent mem sal) ; appendeo al cuerpo el bloque del while
                                          (ejec (cdr pgm) ent mem sal)  ; salgo del bloque
                                        )
             )
@@ -180,7 +178,7 @@
                                        )
             )
             ;TODO autoincrement                                    
-            (t  sal)
+            (t  (evaluar (resolve_exp_vars  (car pgm) mem) mem))
           )
        )
     )
@@ -212,26 +210,29 @@
 ;            )
 ;)
 
-(trace lookup)
+;(trace lookup)
 (trace ejec)
-(trace scanf)
+(trace operar)
+;(trace scanf)
 (trace evaluar)
-(trace resolve_exp_vars)
-(trace run)
+;(trace resolve_exp_vars)
+;(trace run)
 
 (setq fact '(
-                (int a = 4 f)
+                (int a = 4 f = 1)
                 (main
                     (scanf a)
                     (while (a != 1)
                         (f = f * a)
                         (a = a - 1)
-                        (printf a)
+                        (if (a % 2 == 0)
+                            ((printf a))
+                        )
                     )
                 )
             )
 )
-(run fact '(6))
+(print (run fact '(6)))
 
 
 ;(setq ent1 '(0 5 3 6))
