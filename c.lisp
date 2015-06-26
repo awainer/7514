@@ -38,37 +38,55 @@
         (t nil) ;TODO 
     )
 )
-
+; http://www.difranco.net/compsci/C_Operator_Precedence_Table.htm
 (defun peso (x)
     (case x 
-        ('+ 2)
-        ('- 2)
-        ('* 3)
-        ('/ 3)
+        ('* 6)
+        ('/ 6)
+        ('% 6) 
+        ('+ 5)
+        ('- 5)
+        ('>  4) 
+        ('>= 4) 
+        ('<  4) 
+        ('<= 4) 
+        ('=! 3)
+        ('== 3)
+        ('&& 2)
+        ('|| 1)
     )
 )
 ;(print (operar '* 2 3))
 
 (defun evaluar (expr mem &optional (operadores nil) (operandos nil))
-    (if (esoperador (car expr))
-        ;vino un operador y no tengo ninguno
-        (if (null operadores)
-            (evaluar mem (cdr expr)  (cons (car expr) operadores) operandos)
-            ;vino un operador pero ya tenia uno
-            (if (> (peso (car expr)) (peso (cdr operadores)))
-                ;la que viene tiene mayor prioridad que la que estab en la pila
-                (evaluar mem (cdr expr)  (cons (car expr) operadores) operandos)
-                ;la que viene tiene menor prioridad
+    (if  (null expr) 
+        (if (null operadores) 
+            (car operandos)
+            (evaluar nil mem (cdr operadores) (cons (operar (car operadores) (cadr operandos) (car operandos)) (cddr operandos) ))
+        ) 
+        (if (esoperador (car expr))
+            ;vino un operador y no tengo ninguno
+            (if (null operadores)
+                (evaluar  (cdr expr) mem  (cons (car expr) operadores) operandos)
+                ;vino un operador pero ya tenia uno
+                (if (> (peso (car expr)) (peso (car operadores)))
+                    ;la que viene tiene mayor prioridad que la que estab en la pila
+                    (evaluar  (cdr expr) mem  (cons (car expr) operadores) operandos)
+                    ;la que viene tiene menor prioridad
+                    (evaluar expr mem (cddr operadores)  (cons (operar (car operadores) (cadr operandos) (car operandos)) (cddr operandos)  ))
+                )
             )
+            
+            ; No es un operador, lo apilo
+            (evaluar  (cdr expr) mem  operadores (cons (car expr) operandos))
         )
-        
-        ; No es un operador, lo apilo
-        (evaluar mem (cdr expr)  operadores (cons (car expr) operandos))
     )
 )
 
+(print (eq 11 (evaluar '(  3 + 4 * 2) nil)))
 (trace evaluar)
-(evaluar nil '( 2 + 3 * 4))
+(trace operar)
+;(evaluar '(  1 * 4 + 2) nil)
 ;(defun evaluar (exp mem &optional (operadores nil) (operandos nil))
 ;   (if (null exp)
 ;     (if (null operadores) 
@@ -105,9 +123,9 @@
 ;  )
 ;)
 
-(trace evaluar)
-(trace operar)
-(print (evaluar '(3 + 4 + 5) nil))
+;(trace evaluar)
+;(trace operar)
+;(print (evaluar '(3 + 4 + 5) nil))
 
 
 
