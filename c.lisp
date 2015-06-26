@@ -16,9 +16,9 @@
                                    (append (list (car defs) (caddr defs)) mem)
                                    )
     )
-    ;inicializo en nil
+    ;inicializo en 0
     (t                  (agregar (cdr defs)   (append  
-                                                (list  (car defs) nil)  
+                                                (list  (car defs) 0)  
                                                 mem 
                                               )
                         )
@@ -27,14 +27,26 @@
 )
 
 (defun tobool (x) (not (eq 0 x)))
+(defun toint  (x) 
+    (if (numberp x) 
+        x
+       (if x 1 0)
+    )
+)
 
 (defun esoperador (x)
-    (belongs x  '(+ - * / < > <= >= ++ -- || &&) )
+    (belongs x  '(+ - * / < > <= >= ++ -- || && != == %) )
 )
 
 (defun operar (operador operando1 operando2)
     (cond
-        ((belongs operador '(+ - * /))  (apply operador (list operando1 operando2)))
+        ((belongs operador '(+ - * / < > <= >=))  (apply operador (list operando1 operando2)))
+
+        ((eq operador '&&)      (and (tobool operando1) (tobool operando2)))
+        ((eq operador '||)      (or  (tobool operando1) (tobool operando2)))
+        ((eq operador '%)       (mod (tobool operando1) (tobool operando2)))
+        ((eq operador '!=)      (not (eq operando1 operando2)))
+        ((eq operador '==)      (eq operando1 operando2))
         (t nil) ;TODO 
     )
 )
@@ -50,19 +62,18 @@
         ('>= 4) 
         ('<  4) 
         ('<= 4) 
-        ('=! 3)
+        ('!= 3)
         ('== 3)
         ('&& 2)
         ('|| 1)
     )
 )
-;(print (operar '* 2 3))
 
 (defun evaluar (expr mem &optional (operadores nil) (operandos nil))
     (if  (null expr) 
         (if (null operadores) 
             (car operandos)
-            (evaluar nil mem (cdr operadores) (cons (operar (car operadores) (cadr operandos) (car operandos)) (cddr operandos) ))
+            (evaluar nil mem (cdr operadores) (cons (toint (operar (car operadores) (cadr operandos) (car operandos))) (cddr operandos) ))
         ) 
         (if (esoperador (car expr))
             ;vino un operador y no tengo ninguno
@@ -73,7 +84,7 @@
                     ;la que viene tiene mayor prioridad que la que estab en la pila
                     (evaluar  (cdr expr) mem  (cons (car expr) operadores) operandos)
                     ;la que viene tiene menor prioridad
-                    (evaluar expr mem (cddr operadores)  (cons (operar (car operadores) (cadr operandos) (car operandos)) (cddr operandos)  ))
+                    (evaluar expr mem (cddr operadores)  (cons (toint (operar (car operadores) (cadr operandos) (car operandos))) (cddr operandos)  ))
                 )
             )
             
@@ -82,51 +93,6 @@
         )
     )
 )
-
-(print (eq 11 (evaluar '(  3 + 4 * 2) nil)))
-(trace evaluar)
-(trace operar)
-;(evaluar '(  1 * 4 + 2) nil)
-;(defun evaluar (exp mem &optional (operadores nil) (operandos nil))
-;   (if (null exp)
-;     (if (null operadores) 
-;       (car operandos) ; fin de la expresion
-;       (evaluar 
-;         nil 
-;         mem 
-;         (cdr operadores)
-;         (cons (operar (car operadores) (cadr operandos) (car operandos)) (cddr operandos))
-;       )
-;     )
-;     ;exp not null
-;     (if (esoperador (car exp))
-;       (if (null operadores)
-;         (evaluar (cdr exp)
-;                  mem
-;                  (cons (car exp) operadores) 
-;                  operandos
-;         )
-;         (if (> (peso (car exp) (peso car operadores)))
-;            (evaluar (cdr exp) mem (cons (car exp) operadores) operandos)
-;            (evaluar 
-;              nil 
-;              mem 
-;              (cdr operadores)
-;              (cons (operar (car operadores) (cadr operandos) (car operandos)) (cddr operandos))
-;            )
-;        )
-;      )
-;      (
-;        evaluar operadores (cons (car exp) operandos )
-;      )
-;    )
-;  )
-;)
-
-;(trace evaluar)
-;(trace operar)
-;(print (evaluar '(3 + 4 + 5) nil))
-
 
 
 (defun run (pgm ent &optional (mem nil))
@@ -149,13 +115,16 @@
     )
 )
 
-
-
-
-
-
-
-
+(defun resolve_exp_vars (expr mem)
+    (if (null expr) 
+        nil
+        (cons (if (or (numberp (car expr)) (esoperador (car expr)))
+                  (cons (car expr) (resolve_exp_vars (cdr expr) mem))
+                  (cons (lookup (car expr) mem) (resolve_exp_vars (cdr expr) mem))
+              )
+        )
+    )
+)       
 
 (defun scanf (name mem val)
     (cond
@@ -186,7 +155,7 @@
                                     
             ((eq  (cadar pgm) '=    )    (ejec   (cdr pgm)   ent         (scanf  (caar pgm)  
                                                                                  mem 
-                                                                                 (ejec (list (cddar pgm)) ent mem sal) 
+                                                                                 (resolve_exp_vars (evaluar  (cddar pgm) mem) mem)
                                                                          )
                                           sal)
             )
@@ -198,8 +167,9 @@
             ;                                                )
             ;)
 
-            ((eq (caar pgm) 'while)    (if  (ejec (list (cadar pgm)) ent mem sal)
-                                         (ejec (append (caddar pgm) pgm) ent mem sal) ; appendeo al cuerpo el bloque del while
+            ((eq (caar pgm) 'while)    (if  (tobool (evaluar  (cadar pgm)  mem))
+                                         (ejec (append (cddar pgm) pgm) ent mem sal) ; appendeo al cuerpo el bloque del while
+                                         ;(ejec (append (caddar pgm) pgm) ent mem sal) ; appendeo al cuerpo el bloque del while
                                          (ejec (cdr pgm) ent mem sal)  ; salgo del bloque
                                        )
             )
@@ -209,7 +179,7 @@
                                             (ejec (cadr (cdddar pgm)) ent mem sal)
                                        )
             )
-                                         
+            ;TODO autoincrement                                    
             (t  sal)
           )
        )
@@ -219,33 +189,56 @@
 
 
 
-(setq pgm1 '(
-              (int b a )
-              (main
-                    (scanf  b)
-               ;     (printf b)
-                    (while (b < 5)
-                        ( (b = b + 1)
-                          (printf b)
-                        )
-                    )
-                    (printf ( 1 + 1 ))
-              )
-            )
-)
+;(setq pgm1 '(
+;              (int b a )
+;              (main
+;                    (scanf  b)
+;               ;     (printf b)
+;                    (while (b < 5)
+;                        ( (b = b + 1)
+;                          (printf b)
+;                        )
+;                    )
+;                    (printf ( 1 + 1 ))
+;              )
+;            )
+;)
+;
+;(setq pgm2 '(
+;              (int a = 2  b =  5)
+;              (main
+;                 (if (b < a)  ((printf 0))  else (( printf 1)))
+;              )
+;            )
+;)
 
-(setq pgm2 '(
-              (int a = 2  b =  5)
-              (main
-                 (if (b < a)  ((printf 0))  else (( printf 1)))
-              )
-            )
-)
-
-(setq ent1 '(0 5 3 6))
 (trace lookup)
 (trace ejec)
 (trace scanf)
+(trace evaluar)
+(trace resolve_exp_vars)
 (trace run)
+
+(setq fact '(
+                (int a = 4 f)
+                (main
+                    (scanf a)
+                    (while (a != 1)
+                        (f = f * a)
+                        (a = a - 1)
+                        (printf a)
+                    )
+                )
+            )
+)
+(run fact '(6))
+
+
+;(setq ent1 '(0 5 3 6))
+;(print (eq 11 (evaluar '(  3 + 4 * 2) nil)))
+;(trace evaluar)
+;(trace operar)
+;(print (eq (t (evaluar '(1 && 4) nil))))
+;(evaluar '(2 == 3) nil)
 ;(run pgm2 ent1)
 ;(run pgm2 nil)
