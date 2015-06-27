@@ -69,6 +69,16 @@
     )
 )
 
+
+(defun buscaroperador (x)
+    (case x
+        ('+= '+)
+        ('-= '-)
+        ('*= '*)
+        ('/= '/)
+    )
+)
+
 (defun evaluar (expr mem &optional (operadores nil) (operandos nil))
     (if  (null expr) 
         (if (null operadores) 
@@ -133,11 +143,15 @@
     )
 )
 
+(defun resolve_exp_list (l mem)
+    (mapcar (lambda (x) (resolve_exp_vars x mem)) l)
+)
 ;(trace while)
+;(trace resolve_exp_vars)
 
 (defun ejec (pgm ent mem &optional (sal nil))
     (if (null pgm)
-      (reverse sal)
+      (reverse  sal)
       (if (atom (car pgm))
         (if (numberp (car pgm))
             (car pgm)
@@ -145,9 +159,9 @@
         )
         (cond
             ((eq  (caar pgm) 'scanf)     (ejec (cdr pgm) (cdr ent)   (scanf  (cadar pgm) mem (car ent)) sal))
-            ((eq  (caar pgm) 'printf)    (ejec (cdr pgm)  ent  mem  (cons
-                                                                        (ejec (cadar pgm) ent mem)
-                                                                     sal
+            ((eq  (caar pgm) 'printf)    (ejec (cdr pgm)  ent  mem  (append
+                                                                         (car (resolve_exp_list (cdar pgm) mem))
+                                                                        sal
                                                                     )
                                          )
             )
@@ -160,12 +174,6 @@
             )
 
 
-            ;((belongs  (cadar pgm) '(+ - * / < > <= >=))    (apply (cadar pgm) 
-            ;                                                    (list  (ejec  (list(caar pgm)) ent mem sal)
-            ;                                                            (ejec (list(caddar pgm)) ent mem sal))
-            ;                                                )
-            ;)
-
             ((eq (caar pgm) 'while)    (if  (tobool (evaluar (resolve_exp_vars  (cadar pgm) mem)  mem))
                                          (ejec (append (cddar pgm) pgm) ent mem sal) ; appendeo al cuerpo el bloque del while
                                          (ejec (cdr pgm) ent mem sal)  ; salgo del bloque
@@ -174,11 +182,56 @@
 
             ((eq (caar pgm) 'if)       (if  (tobool (evaluar  (resolve_exp_vars (cadar pgm)mem) mem))
                                             (ejec (append (caddar pgm)  (cdr  pgm)) ent mem sal)
-                                            (ejec (cadr (cdddar pgm)) ent mem sal)
-                                            ;TODO else
+                                            (if (eq (length (car pgm)) 5)
+                                                ;tiene else
+                                                (ejec (append (cadr (cdddar pgm)) (cdr pgm)) ent mem sal)
+                                                ; No tiene else
+                                                (ejec  (cdr pgm) ent mem sal)
+                                            )
                                        )
             )
-            ;TODO autoincrement                                    
+
+            ((eq (cadar pgm) '++)        (ejec (cons (list (caar pgm) '= (caar  pgm) '+ 1) (cdr pgm))
+                                               ent
+                                               mem
+                                               sal
+                                         )
+            )
+            
+            ((eq (caar pgm) '++)        (ejec (cons (list (cadar pgm) '= (cadar  pgm) '+ 1) (cdr pgm))
+                                               ent
+                                               mem
+                                               sal
+                                         )
+            )
+
+
+            ((eq (cadar pgm) '--)        (ejec (cons (list (caar pgm) '= (caar  pgm) '- 1) (cdr pgm))
+                                               ent
+                                               mem
+                                               sal
+                                         )
+            )
+
+            ((eq (caar pgm) '--)        (ejec (cons (list (cadar pgm) '= (cadar  pgm) '- 1) (cdr pgm))
+                                               ent
+                                               mem
+                                               sal
+                                         )
+            )
+
+            ((belongs  (cadar pgm) '(+= -= *= /=))      (ejec   (cons  (list (caar pgm) '= (caar pgm)
+                                                                             (buscaroperador (cadar pgm))
+                                                                             (caddar pgm)
+                                                                       )
+                                                                (cdr pgm)
+                                                                )
+                                                        ent
+                                                        mem
+                                                        sal
+                                                        )
+            )
+
             (t  (evaluar (resolve_exp_vars  (car pgm) mem) mem))
           )
        )
@@ -219,25 +272,40 @@
 ;(trace resolve_exp_vars)
 ;(trace run)
 
-(setq fact '(
-                (int a = 4 f = 1)
-                (main
-                    (scanf a)
-                    (while (a != 1)
-                        (f = f * a)
-                        (a = a - 1)
-                        ;(if (a % 2 == 0)
-                        (if (a > 3)
-                            (
-                            (printf (a))
-                            )
-                        )
-                    )
-                )
+;(setq fact '(
+;                (int a = 4 f = 1)
+;                (main
+;                    (scanf a)
+;                    (while (a != 1)
+;                        (f = f * a)
+;                        (a = a - 1)
+;                        ;(if (a % 2 == 0)
+;                        (if (a > 3)
+;                            (
+;                            (printf (a))
+;                            )
+;                         else
+;                            (
+;                            (printf (0))
+;                            )
+;                        )
+;                    )
+;                    (printf (f))
+;                )
+;            )
+;)
+;(print (run fact '(6)))
+;
+
+(setq pgm3 '(
+              (int a = 6)
+              (main
+                ( a  -= 5 )
+                (printf (a))
+              )
             )
 )
-(print (run fact '(6)))
-
+(print (run pgm3 nil))
 
 ;(setq ent1 '(0 5 3 6))
 ;(print (eq 11 (evaluar '(  3 + 4 * 2) nil)))
