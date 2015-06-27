@@ -146,7 +146,7 @@
         (cond
             ((eq  (caar pgm) 'scanf)     (ejec (cdr pgm) (cdr ent)   (scanf  (cadar pgm) mem (car ent)) sal))
             ((eq  (caar pgm) 'printf)    (ejec (cdr pgm)  ent  mem  (cons
-                                                                        (ejec (cdar pgm) ent mem)
+                                                                        (ejec (cadar pgm) ent mem)
                                                                      sal
                                                                     )
                                          )
@@ -172,9 +172,10 @@
                                        )
             )
 
-            ((eq (caar pgm) 'if)       (if  (ejec (list (cadar pgm)) ent mem sal) 
-                                            (ejec  (caddar pgm) ent mem sal) 
+            ((eq (caar pgm) 'if)       (if  (tobool (evaluar  (resolve_exp_vars (cadar pgm)mem) mem))
+                                            (ejec (append (caddar pgm)  (cdr  pgm)) ent mem sal)
                                             (ejec (cadr (cdddar pgm)) ent mem sal)
+                                            ;TODO else
                                        )
             )
             ;TODO autoincrement                                    
@@ -225,8 +226,11 @@
                     (while (a != 1)
                         (f = f * a)
                         (a = a - 1)
-                        (if (a % 2 == 0)
-                            ((printf a))
+                        ;(if (a % 2 == 0)
+                        (if (a > 3)
+                            (
+                            (printf (a))
+                            )
                         )
                     )
                 )
