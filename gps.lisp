@@ -53,11 +53,31 @@
     )
 )
             
-(trace vecinos)
-(print (vecinos 10 grafo))
-
-(defun diferencia nil
+;(trace vecinos)
+;(print (vecinos 10 grafo))
+(defun elimina_elem (x l)
+    (if (null l)
+        nil
+        (if (eq x (car l))
+            (elimina_elem x (cdr l))
+            (cons (car l) (elimina_elem x (cdr l)))
+        )
+    )
 )
+
+
+
+(defun diferencia (l1 l2)
+    (if (null l2)
+        l1
+        (if (belongs (car l2) l1)
+            (diferencia (elimina_elem (car l2) l1) (cdr l2))
+            (diferencia l1 (cdr l2))
+        )
+    )
+)
+
+;(print (diferencia '(5 2 9 2 6 3 1 5) '(1 2)))
 
 (defun gps (i f grafo &optional (tray (list (list i))))
     (if (null tray)
@@ -66,12 +86,15 @@
         (reverse tray)
         (gps i f grafo
              (append
-               (mapcar (lambda (x) (cons x (car tray))))
-               (diferencia  (vecinos    (caar tray) grafo)
-                            (car tray)
-                            )
+               (mapcar (lambda (x) (cons x (car tray)))
+                 (diferencia  (vecinos    (caar tray) grafo)
+                              (car tray)
+                 )
+               )
              )
         )
      )
    )
 )
+
+(print (gps 10 21 grafo))
