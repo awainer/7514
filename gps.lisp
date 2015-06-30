@@ -41,12 +41,14 @@
   ) 
 )
 
+(trace belongs)
+
 (defun vecinos (nodo grafo &optional (res nil) ) 
     (if (null grafo)
-        vecinos
-        (if (belongs nodo (cdar grafo))
+        res
+        (if (belongs nodo (cadar grafo))
             (vecinos nodo (cdr grafo) (cons (caar grafo) res))
-            8;(vecinos nodo (cdr grafo)  grafo res)
+            (vecinos nodo (cdr grafo)   res)
         )
     )
 )
@@ -68,7 +70,7 @@
                (diferencia  (vecinos    (caar tray) grafo)
                             (car tray)
                             )
-               )
+             )
         )
      )
    )
