@@ -110,24 +110,41 @@
         (diferencia (vecinos (car tray) grafo)   tray)
 )
 
-(trace expand_tray)
+;(defun expand_branch (tray grafo)
+;    (if (or (null (vecinos_sin_visitar x grafo)) (eq f (car x)  ))
+;        tray
+;        ()
+;    )
+;)
 
+(trace expand_tray)
 (defun gps (i f grafo &optional (tray (list (list i))))
-    (append
-    (mapcar
-        (lambda (x) 
-                    (if (not (or  (null (vecinos_sin_visitar x grafo)) (eq f (car x)  )))
-                           ; (expand_tray x grafo)
-                           (append (gps i f grafo  (append  (expand_tray x grafo))))
-                           tray
-                    )
-                    
-        )
-        tray
-    )
-    )
+        (car (mapcar
+            (lambda (x) (
+                            expand_tray x grafo
+                        )
+            )
+            tray
+        ))
+    
 )
+
+(print (gps 1 3  grafo_chico ))
+
 ;(defun gps (i f grafo &optional (tray (list (list i))))
+;    (mapcar
+;        (lambda (x) 
+;                    (if (not (or  (null (vecinos_sin_visitar x grafo)) (eq f (car x)  )))
+;                           ; (expand_tray x grafo)
+;                           (append (gps i f grafo  (append  (expand_tray x grafo))))
+;                           tray
+;                    )
+;                    
+;        )
+;        tray
+;    )
+;)
+;;(defun gps (i f grafo &optional (tray (list (list i))))
 ;
 ;    (mapcar
 ;     (lambda (x) (gps i f grafo (expand_tray x grafo)))
@@ -187,7 +204,6 @@
 
 (trace gps)
 ;(print (gps 18 12  grafo))
-(print (gps 1 3  grafo_chico ))
 ;(print (gps 1 3  grafo_chico  '((1)) ))
 ;(EXPAND_TRAY (car (EXPAND_TRAY  '(16 10)  grafo)) grafo)
 
