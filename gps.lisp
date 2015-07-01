@@ -33,6 +33,15 @@
              )
 )
 
+(setq grafo_chico '(
+                    (1 (2 4 5))
+                    (2 (3))
+                    (3 (2 5))
+                    (4 (3))
+                    (5 (4))
+                   )
+)
+
 (defun belongs (x l)
   (cond
     ((null l      ) nil)
@@ -104,7 +113,20 @@
 (trace expand_tray)
 
 (defun gps (i f grafo &optional (tray (list (list i))))
-nil)
+    (append
+    (mapcar
+        (lambda (x) 
+                    (if (not (or  (null (vecinos_sin_visitar x grafo)) (eq f (car x)  )))
+                           ; (expand_tray x grafo)
+                           (append (gps i f grafo  (append  (expand_tray x grafo))))
+                           tray
+                    )
+                    
+        )
+        tray
+    )
+    )
+)
 ;(defun gps (i f grafo &optional (tray (list (list i))))
 ;
 ;    (mapcar
@@ -125,7 +147,7 @@ nil)
 ;    (if (null tray)
 ;      nil
 ;    )
-)
+;)
 ;      (if (eq (caar tray) f)
 ;        (reverse tray)
 ;
@@ -164,6 +186,8 @@ nil)
 ;)
 
 (trace gps)
-(print (gps 10 21 grafo))
+;(print (gps 18 12  grafo))
+(print (gps 1 3  grafo_chico ))
+;(print (gps 1 3  grafo_chico  '((1)) ))
 ;(EXPAND_TRAY (car (EXPAND_TRAY  '(16 10)  grafo)) grafo)
 
