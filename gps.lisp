@@ -42,6 +42,9 @@
                    )
 )
 
+
+
+
 (defun belongs (x l)
   (cond
     ((null l      ) nil)
@@ -146,9 +149,10 @@
 
 (trace gps)
 (trace encontre_solucion)
-(print (gps_lindo 1 2  grafo_chico ))
+(trace elimina_falso_positivo)
+;(print (gps_lindo 1 2  grafo_chico ))
 
-;(print (gps 18 12  grafo))
+(print (gps_lindo 18 9  grafo))
 ;(print (gps 1 3  grafo_chico  '((1)) ))
 ;(EXPAND_TRAY (car (EXPAND_TRAY  '(16 10)  grafo)) grafo)
 
