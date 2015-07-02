@@ -34,7 +34,7 @@
 )
 
 (setq grafo_chico '(
-                    (1 (2 4 5))
+                    (1 ( 5))
                     (2 (3))
                     (3 (2 5))
                     (4 (3))
@@ -50,17 +50,6 @@
   ) 
 )
 
-;(trace belongs)
-
-;(defun vecinos (nodo grafo &optional (res nil) ) 
-;    (if (null grafo)
-;        res
-;        (if (belongs nodo (cadar grafo))
-;            (vecinos nodo (cdr grafo) (cons (caar grafo) res))
-;            (vecinos nodo (cdr grafo)   res)
-;        )
-;    )
-;)
 
 (defun vecinos (nodo grafo)
     (if (null grafo)
@@ -72,8 +61,6 @@
     )
 )
             
-;(trace vecinos)
-;(print (vecinos 29 grafo))
 
 (defun elimina_elem (x l)
     (if (null l)
@@ -110,99 +97,44 @@
         (diferencia (vecinos (car tray) grafo)   tray)
 )
 
-;(defun expand_branch (tray grafo)
-;    (if (or (null (vecinos_sin_visitar x grafo)) (eq f (car x)  ))
-;        tray
-;        ()
-;    )
-;)
+(defun encontre_solucion (f tray)
+    (if (null tray)
+        nil
+        (if (eq f (caar tray))
+            t
+            (encontre_solucion f (cdr tray))
+        )
+    )
+)
+
+(defun expand_level (tray grafo)
+    (mapcar (lambda (x)  (expand_tray x grafo))  tray)
+)
 
 (trace expand_tray)
 (defun gps (i f grafo &optional (tray (list (list i))))
-        (car (mapcar
-            (lambda (x) (
-                            expand_tray x grafo
-                        )
-            )
+        (if (not (encontre_solucion f tray))
+            (gps i f grafo (car (expand_level tray grafo)))
             tray
-        ))
+        )
     
 )
 
-(print (gps 1 3  grafo_chico ))
+(defun gps_lindo (i f grafo)
+    (elimina_falso_positivo (gps i f grafo) f)
+)
 
-;(defun gps (i f grafo &optional (tray (list (list i))))
-;    (mapcar
-;        (lambda (x) 
-;                    (if (not (or  (null (vecinos_sin_visitar x grafo)) (eq f (car x)  )))
-;                           ; (expand_tray x grafo)
-;                           (append (gps i f grafo  (append  (expand_tray x grafo))))
-;                           tray
-;                    )
-;                    
-;        )
-;        tray
-;    )
-;)
-;;(defun gps (i f grafo &optional (tray (list (list i))))
-;
-;    (mapcar
-;     (lambda (x) (gps i f grafo (expand_tray x grafo)))
-;     tray   
-;    )     
-;    (if (or (eq f (caar tray)) (null (vecinos_sin_visitar ( ))  )
-    
-;        (cons (car tray) (gps i f grafo (cdr tray)))
-        ;(cons (car tray) (gps i f grafo (cdr tray)))
-;        (gps i f grafo
-;            (append 
-;                (expand_tray (car tray) grafo)
-;                (cdr tray)
-;            )
-;        )
-;    )
-;    (if (null tray)
-;      nil
-;    )
-;)
-;      (if (eq (caar tray) f)
-;        (reverse tray)
-;
-;         (gps i f grafo
-;         (mapcar 
-;              (lambda (x) (expand_tray x grafo))
-;              tray
-;         )
-;         )
-;        (mapcar (lambda (x) 
-;                    ;(append  (vecinos (car x) grafo) x)        
-;                       (mapcar 'list
-;                            (diferencia  (vecinos    (car x) grafo)
-;                                         x
-;                            )
-;                            x
-;                       )
-;                )
-;                tray
-;        )
-
-            
-       ;(vecinos (caar tray) grafo)
-       ; (gps i f grafo
-       ;      (append
-             ;  (mapcar (lambda (x) (cons
-             ;          )
-                      ; (diferencia  (vecinos    (caar tray) grafo)
-                      ;              (car tray)
-                      ; )
-             ;  )
-       ;      )
-       ; )
-;     )
-;   )
-;)
+(defun elimina_falso_positivo (tray f)
+    (if (eq f (caar tray))
+        (reverse (car tray))
+        (elimina_falso_positivo (cdr tray) f)
+    )
+)
 
 (trace gps)
+(trace encontre_solucion)
+(print (gps_lindo 1 2  grafo_chico ))
+
 ;(print (gps 18 12  grafo))
 ;(print (gps 1 3  grafo_chico  '((1)) ))
 ;(EXPAND_TRAY (car (EXPAND_TRAY  '(16 10)  grafo)) grafo)
