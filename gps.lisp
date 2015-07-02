@@ -111,10 +111,20 @@
     (mapcar (lambda (x)  (expand_tray x grafo))  tray)
 )
 
+(defun puedo_expandir (tray grafo f)
+   (mapcar (lambda (x) (not (null (vecinos_sin_visitar x grafo))) ) tray)
+   ;(reduce 'or (mapcar (lambda (x) (not (null (vecinos_sin_visitar x grafo))) ) tray))
+   ;(reduce 'or (mapcar (lambda (x) (vecinos_sin_visitar x grafo) ) tray))
+)
+
 (trace expand_tray)
+(trace puedo_expandir)
 (defun gps (i f grafo &optional (tray (list (list i))))
         (if (not (encontre_solucion f tray))
-            (gps i f grafo (car (expand_level tray grafo)))
+            (if (puedo_expandir tray grafo f)
+                (gps i f grafo (car (expand_level tray grafo)))
+                tray
+            )
             tray
         )
     
@@ -125,9 +135,12 @@
 )
 
 (defun elimina_falso_positivo (tray f)
-    (if (eq f (caar tray))
-        (reverse (car tray))
-        (elimina_falso_positivo (cdr tray) f)
+    (if (null tray)
+        nil
+        (if (eq f (caar tray))
+            (reverse (car tray))
+            (elimina_falso_positivo (cdr tray) f)
+        )
     )
 )
 
