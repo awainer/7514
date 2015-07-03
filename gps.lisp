@@ -42,8 +42,49 @@
                    )
 )
 
+(setq  nombre_esquinas '( 
+                          (1 (mexico peru)) 
+                          (2 (mexico bolivar)) 
+                          (3 (mexico defensa)) 
+                          (4 (mexico balcarce)) 
+                          (5 (mexico paseo_colon)) 
+                          (6 (mexico azopardo)) 
+                          (7 (chile peru)) 
+                          (8 (chile bolivar)) 
+                          (9 (chile defensa)) 
+                          (10 (chile balcarce)) 
+                          (11 (chile paseo_colon)) 
+                          (12 (chile azopardo)) 
+                          (13 (independencia  peru)) 
+                          (14 (independencia  bolivar)) 
+                          (15 (independencia  defensa)) 
+                          (16 (independencia  balcarce)) 
+                          (17 (independencia  paseo_colon)) 
+                          (18 (independencia  azopardo)) 
+                          (19 (eeuu  peru)) 
+                          (20 (eeuu  bolivar)) 
+                          (21 (eeuu  defensa)) 
+                          (22 (eeuu  balcarce)) 
+                          (23 (eeuu  paseo_colon)) 
+                          (24 (eeuu  azopardo)) 
+                          (25 (carlos_calvo  peru)) 
+                          (26 (carlos_calvo  bolivar)) 
+                          (27 (carlos_calvo  defensa)) 
+                          (28 (carlos_calvo  balcarce)) 
+                          (29 (carlos_calvo  paseo_colon)) 
+                          (30 (carlos_calvo  azopardo)) 
+                         )
+)
 
 
+(defun lookup (elem l)
+    (if (null l) nil
+          (if (eq elem (caar l))
+                  (cdar l)
+                        (lookup elem (cdr l))
+                            )
+            )
+)
 
 (defun belongs (x l)
   (cond
@@ -116,8 +157,6 @@
 
 (defun puedo_expandir (tray grafo f)
    (mapcar (lambda (x) (not (null (vecinos_sin_visitar x grafo))) ) tray)
-   ;(reduce 'or (mapcar (lambda (x) (not (null (vecinos_sin_visitar x grafo))) ) tray))
-   ;(reduce 'or (mapcar (lambda (x) (vecinos_sin_visitar x grafo) ) tray))
 )
 
 (trace expand_tray)
@@ -133,8 +172,42 @@
     
 )
 
+(defun eq_esquina (esq1 esq2)
+    (or
+        (and  (eq (car esq1) (car esq2)) (eq (cadr esq1) (cadr esq2)))
+        (and  (eq (car esq1) (cadr esq2)) (eq (cadr esq1) (car esq2)))
+    )
+)
+
+(defun nodos_a_nombres (nodos dict_nombres)
+    (mapcar 'car 
+        (mapcar (lambda (x) (lookup x dict_nombres)) nodos)
+    )
+)
+
+(defun esquina_a_id (esquina  grafo)
+    (if (eq_esquina esquina (cadar grafo))
+        (caar grafo)
+        (esquina_a_id esquina (cdr grafo))
+    )
+)
+;(trace esquina_a_id)
+;(trace eq_esquina)
+;(esquina_a_id '(chile bolivar) nombre_esquinas )
+
+
 (defun gps_lindo (i f grafo)
-    (elimina_falso_positivo (gps i f grafo) f)
+    (nodos_a_nombres 
+      (elimina_falso_positivo 
+        (gps 
+          (esquina_a_id i nombre_esquinas)  
+          (esquina_a_id f nombre_esquinas)  
+          grafo
+        ) 
+        (esquina_a_id f nombre_esquinas)
+      ) 
+      nombre_esquinas
+    )
 )
 
 (defun elimina_falso_positivo (tray f)
@@ -152,7 +225,7 @@
 (trace elimina_falso_positivo)
 ;(print (gps_lindo 1 2  grafo_chico ))
 
-(print (gps_lindo 18 9  grafo))
+(print (gps_lindo '(defensa eeuu) '(azopardo mexico)  grafo))
 ;(print (gps 1 3  grafo_chico  '((1)) ))
 ;(EXPAND_TRAY (car (EXPAND_TRAY  '(16 10)  grafo)) grafo)
 
