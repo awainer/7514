@@ -197,6 +197,7 @@
 
 
 (defun gps_lindo (i f grafo)
+  (salida_linda
     (nodos_a_nombres 
       (elimina_falso_positivo 
         (gps 
@@ -208,6 +209,7 @@
       ) 
       nombre_esquinas
     )
+   )
 )
 
 (defun elimina_falso_positivo (tray f)
@@ -220,12 +222,35 @@
     )
 )
 
+;(defun misma_calle (esq1 esq2)
+;    (or
+;        (eq (car esq1) (car esq2))
+;        (eq (cdr esq1) (cdr esq2))
+;        (eq (car esq1) (cdr esq2))
+;        (eq (cdr esq1) (car esc2))
+;    )
+;)
+
+(trace belongs)
+(defun salida_linda (tray &optional (sal (list (list (caar tray)) 0)))
+  (if (null tray)
+    sal
+    (salida_linda (cdr tray) 
+        (if (belongs (caar tray) (car sal))
+            (cons  (list (caar sal)  (+ 1 (car sal)))   (cdr sal))
+            (cons  (list (caar tray)  0 )   (cdr sal))
+        )
+    )
+  )
+)
+(trace salida_linda)
+
 (trace gps)
 (trace encontre_solucion)
 (trace elimina_falso_positivo)
 ;(print (gps_lindo 1 2  grafo_chico ))
 
-(print (gps_lindo '(defensa eeuu) '(azopardo mexico)  grafo))
-;(print (gps 1 3  grafo_chico  '((1)) ))
-;(EXPAND_TRAY (car (EXPAND_TRAY  '(16 10)  grafo)) grafo)
+;(print (gps_lindo '(defensa eeuu) '(azopardo mexico)  grafo))
 
+(setq unr '((EEUU DEFENSA) (INDEPENDENCIA DEFENSA) (CHILE DEFENSA) (MEXICO DEFENSA) (MEXICO BALCARCE) (MEXICO PASEO_COLON) (MEXICO AZOPARDO)))
+(salida_linda unr)
