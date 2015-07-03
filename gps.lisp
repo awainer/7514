@@ -159,8 +159,8 @@
    (mapcar (lambda (x) (not (null (vecinos_sin_visitar x grafo))) ) tray)
 )
 
-(trace expand_tray)
-(trace puedo_expandir)
+;(trace expand_tray)
+;(trace puedo_expandir)
 (defun gps (i f grafo &optional (tray (list (list i))))
         (if (not (encontre_solucion f tray))
             (if (puedo_expandir tray grafo f)
@@ -197,6 +197,7 @@
 
 
 (defun gps_lindo (i f grafo)
+ (parse_salida_linda
   (salida_linda
     (nodos_a_nombres 
       (elimina_falso_positivo 
@@ -210,6 +211,7 @@
       nombre_esquinas
     )
    )
+ )
 )
 
 (defun elimina_falso_positivo (tray f)
@@ -231,26 +233,43 @@
 ;    )
 ;)
 
-(trace belongs)
-(defun salida_linda (tray &optional (sal (list (list (caar tray)) 0)))
+(defun intersec (e1 e2)
+    (cond  
+        ((eq (car e1) (car e2))       (car e1))
+        ((eq (car e1) (cadr e2))      (car e1))
+        (t (cadr e1))
+    )
+)
+
+;(trace belongs)
+;(trace intersec)
+(defun salida_linda (tray &optional (sal (list (list (intersec (car tray) (cadr tray)) 0))))
   (if (null tray)
-    sal
-    (salida_linda (cdr tray) 
-        (if (belongs (caar tray) (car sal))
-            (cons  (list (caar sal)  (+ 1 (car sal)))   (cdr sal))
-            (cons  (list (caar tray)  0 )   (cdr sal))
-        )
+    (reverse sal)
+    (if (belongs (caar sal) (car tray))
+       (salida_linda (cdr tray)  (cons (list (caar sal)  (+ 1 (cadar sal)))   (cdr sal)))
+       (salida_linda (cdr tray)  (cons (list (caar tray)  0)   sal) )
     )
   )
 )
-(trace salida_linda)
 
-(trace gps)
-(trace encontre_solucion)
-(trace elimina_falso_positivo)
+(defun parse_salida_linda (sal)
+    (mapcar (lambda (x)
+                (append '(Doble por) (list (car x))  '( y avance) (cdr x)  '(cuadras.))
+            )
+            sal
+    )
+)
+
+;(trace salida_linda)
+;
+;(trace gps)
+;(trace encontre_solucion)
+;(trace elimina_falso_positivo)
 ;(print (gps_lindo 1 2  grafo_chico ))
 
-;(print (gps_lindo '(defensa eeuu) '(azopardo mexico)  grafo))
+(print (gps_lindo '(defensa eeuu) '(azopardo mexico)  grafo))
 
-(setq unr '((EEUU DEFENSA) (INDEPENDENCIA DEFENSA) (CHILE DEFENSA) (MEXICO DEFENSA) (MEXICO BALCARCE) (MEXICO PASEO_COLON) (MEXICO AZOPARDO)))
-(salida_linda unr)
+;(setq unr '((EEUU DEFENSA) (INDEPENDENCIA DEFENSA) (CHILE DEFENSA) (MEXICO DEFENSA) (MEXICO BALCARCE) (MEXICO PASEO_COLON) (MEXICO AZOPARDO)))
+;(print (parse_salida_linda (salida_linda unr)))
+;(intersec '(EEUU DEFENSA) '(INDEPENDENCIA DEFENSA))
