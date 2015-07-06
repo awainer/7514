@@ -131,9 +131,12 @@
 ;(print (diferencia '(5 2 9 2 6 3 1 5) '(1 2)))
 
 (defun expand_tray (tray  grafo)
-    (mapcar
-        (lambda (x) (cons x tray))
-        (vecinos_sin_visitar  tray grafo)
+    (if (null (vecinos_sin_visitar  tray grafo))
+      (list tray) ; por consistencia, mapcar devuelve lista
+        (mapcar
+            (lambda (x) (cons x tray))
+            (vecinos_sin_visitar  tray grafo)
+        )
     )
 )
 (trace expand_tray)
@@ -154,21 +157,30 @@
 )
 (trace encontre_solucion)
 
+;(defun flat (x) 
+;    (if (listp (car x))
+;        (if (listp (caar x))
+;          (flat (ap
+;)
+
 (defun expand_level (tray grafo)
-    (mapcar (lambda (x)  (expand_tray x grafo))  tray)
+    (reduce 'append
+        (mapcar (lambda (x)  (expand_tray x grafo))  tray)
+        )
 )
 
 (defun puedo_expandir (tray grafo f)
-   (or (mapcar (lambda (x) (not (null (vecinos_sin_visitar x grafo))) ) tray))
+    (reduce (lambda (&optional (x nil) (y nil) ) (or x y))    (mapcar (lambda (x) (not (null (vecinos_sin_visitar x grafo))) ) tray))
 )
 (trace puedo_expandir)
-
+(trace vecinos_sin_visitar)
+(trace expand_level)
 ;(trace expand_tray)
 ;(trace puedo_expandir)
 (defun gps (i f grafo &optional (tray (list (list i))))
         (if (not (encontre_solucion f tray))
             (if (puedo_expandir tray grafo f)
-                (gps i f grafo (car (expand_level tray grafo)))
+                (gps i f grafo   (expand_level tray grafo))
                 tray
             )
             tray
@@ -271,11 +283,11 @@
 ;
 ;(trace gps)
 ;(trace encontre_solucion)
-;(trace elimina_falso_positivo)
+(trace elimina_falso_positivo)
 ;(print (gps_lindo 1 2  grafo_chico ))
 
-(print (gps_lindo '(eeuu defensa) '(paseo_colon chile)  grafo))
-
+(print (gps_lindo  '(paseo_colon chile)    '(eeuu defensa)  grafo))
+;(print (gps  5 20  grafo))
 ;(setq unr '((EEUU DEFENSA) (INDEPENDENCIA DEFENSA) (CHILE DEFENSA) (MEXICO DEFENSA) (MEXICO BALCARCE) (MEXICO PASEO_COLON) (MEXICO AZOPARDO)))
 ;(print (parse_salida_linda (salida_linda unr)))
 ;(intersec '(EEUU DEFENSA) '(INDEPENDENCIA DEFENSA))
