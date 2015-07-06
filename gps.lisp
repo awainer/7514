@@ -3,11 +3,11 @@
               (2 (3 8))
               (3 (4))
               (4 (5 10))
-              (5 (6))
+              (5 (6 11))
               (6 nil)
               (7 (1 8))
               (8 (9 14))
-              (9 (3 10))
+              (9 (10 3))
               (10 (11 16))
               (11 (12 5 17))
               (12 (6))
@@ -133,13 +133,15 @@
 (defun expand_tray (tray  grafo)
     (mapcar
         (lambda (x) (cons x tray))
-        (vecinos_sin_visitar tray grafo)
+        (vecinos_sin_visitar  tray grafo)
     )
 )
-
+(trace expand_tray)
 (defun vecinos_sin_visitar (tray grafo)
         (diferencia (vecinos (car tray) grafo)   tray)
 )
+
+(trace vecinos_sin_visitar)
 
 (defun encontre_solucion (f tray)
     (if (null tray)
@@ -150,14 +152,16 @@
         )
     )
 )
+(trace encontre_solucion)
 
 (defun expand_level (tray grafo)
     (mapcar (lambda (x)  (expand_tray x grafo))  tray)
 )
 
 (defun puedo_expandir (tray grafo f)
-   (mapcar (lambda (x) (not (null (vecinos_sin_visitar x grafo))) ) tray)
+   (or (mapcar (lambda (x) (not (null (vecinos_sin_visitar x grafo))) ) tray))
 )
+(trace puedo_expandir)
 
 ;(trace expand_tray)
 ;(trace puedo_expandir)
@@ -191,6 +195,7 @@
         (esquina_a_id esquina (cdr grafo))
     )
 )
+(trace gps)
 ;(trace esquina_a_id)
 ;(trace eq_esquina)
 ;(esquina_a_id '(chile bolivar) nombre_esquinas )
@@ -252,6 +257,7 @@
     )
   )
 )
+(trace salida_linda)
 
 (defun parse_salida_linda (sal)
     (mapcar (lambda (x)
@@ -268,7 +274,7 @@
 ;(trace elimina_falso_positivo)
 ;(print (gps_lindo 1 2  grafo_chico ))
 
-(print (gps_lindo '(defensa eeuu) '(azopardo mexico)  grafo))
+(print (gps_lindo '(eeuu defensa) '(paseo_colon chile)  grafo))
 
 ;(setq unr '((EEUU DEFENSA) (INDEPENDENCIA DEFENSA) (CHILE DEFENSA) (MEXICO DEFENSA) (MEXICO BALCARCE) (MEXICO PASEO_COLON) (MEXICO AZOPARDO)))
 ;(print (parse_salida_linda (salida_linda unr)))

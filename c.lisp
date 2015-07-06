@@ -104,26 +104,56 @@
     )
 )
 
+(defun elimina_int (x)
+	(if (null x) 
+	     nil
+	    (if (eq 'int (car x))
+		(cons (cadr x) (elimina_int (cddr x)))
+		(cons (car x) (elimina_int (cdr x)))
+	    )
+	)
+)
+(trace elimina_int)
 
+(defun define_proc (proc)
+	(list 
+		 (cadr proc)
+		 (list 
+			'lambda 
+			 (elimina_int (caddr proc))
+			 (cadddr proc)
+		 )
+	)  
+
+)
+(trace define_proc)
 (defun run (pgm ent &optional (mem nil))
   (if   (null pgm)  nil
     (if (eq (caar pgm) 'int)    
           (run  (cdr pgm)  ent (agregar (cdar pgm) mem))
           (if (eq (caar pgm) 'main)
-            (ejec (cdar pgm) ent mem)
-            (print  pgm)
+            (ejec (cadar pgm) ent mem)
+    	    (if (eq (caar pgm) 'void) ; definicion de proc
+		(run  (cdr pgm)  ent (append  (define_proc (car pgm)) mem))
+		(print pgm)
+            )
           )
     )
   )
 )
 
+(trace run)
+
 
 (defun lookup (var mem)
     (cond
+	((eq 'marca (car mem))	(lookup var (cdr mem)))
         ((eq var (car mem))     (cadr mem))
         (t                      (lookup var (cdr mem)))
     )
 )
+
+(trace lookup)
 
 (defun resolve_exp_vars (expr mem)
     (if (null expr) 
@@ -151,7 +181,8 @@
 
 (defun ejec (pgm ent mem &optional (sal nil))
     (if (null pgm)
-      (reverse  sal)
+      ;(reverse  sal)
+	sal
       (if (atom (car pgm))
         (if (numberp (car pgm))
             (car pgm)
@@ -160,8 +191,8 @@
         (cond
             ((eq  (caar pgm) 'scanf)     (ejec (cdr pgm) (cdr ent)   (scanf  (cadar pgm) mem (car ent)) sal))
             ((eq  (caar pgm) 'printf)    (ejec (cdr pgm)  ent  mem  (append
-                                                                         (car (resolve_exp_list (cdar pgm) mem))
                                                                         sal
+                                                                        (car(resolve_exp_list (cdar pgm) mem))
                                                                     )
                                          )
             )
@@ -231,14 +262,73 @@
                                                         sal
                                                         )
             )
+	    
+	    ((eq (caar pgm) 'int)			(ejec (cdr pgm)
+							      ent
+							      (agregar (cdar pgm) mem)
+							      sal
+							)
+	    )
+							     
 
+	   ; ((eq (caar pgm) 'MARCA_FIN_PROC)		8)
+	    ((eq (caar pgm) 'marca_fin_proc)		(ejec (cdr pgm)
+	        					      ent
+	        					      (elimina_locales mem) 
+	        					      sal
+	        					)
+	    )
+	    ((es_proc (caar pgm) mem)	(ejec_proc   (cdar pgm)   ; parametros del proc
+						     (lookup (caar pgm) mem)  ; cuerpo del proc
+						     (cdr pgm) ; resto del programa
+						     ent mem sal
+					)
+						
+	    )
             (t  (evaluar (resolve_exp_vars  (car pgm) mem) mem))
           )
        )
     )
 )
 
+(defun elimina_locales (mem)
+	(if (eq (car mem) 'marca)
+		(cdr mem)
+		(elimina_locales (cdr mem))
+	)
+)
 
+(defun ejec_proc (params cuerpo pgm  ent mem sal )
+	;(list 'ejec
+	(ejec
+		(append (caddr cuerpo) '((marca_fin_proc))   pgm)
+		ent
+		(append
+			(zip 
+				(cadr cuerpo)
+				(mapcar  (lambda (x)  (evaluar x mem))  (resolve_exp_list params mem) )
+			)
+			'(MARCA)
+			mem
+		)
+		sal
+	)
+)
+
+(defun zip (l1 l2)
+	(if (null l1)
+		nil
+	    (append (list  (car l1) (car l2))  (zip (cdr l1) (cdr l2)))
+	)
+)
+(trace resolve_exp_list)
+
+(trace ejec_proc)
+
+(defun es_proc (expr mem)
+	(lookup expr mem)
+)
+(trace es_proc)
 
 
 ;(setq pgm1 '(
@@ -297,13 +387,36 @@
 ;(print (run fact '(6)))
 ;
 
+;(setq pgm3 '(
+;              (int a = 6)
+;              (main
+;                ( a  -= 5 )
+;                (printf (a))
+;              )
+;            )
+;)
+
 (setq pgm3 '(
-              (int a = 6)
-              (main
-                ( a  -= 5 )
-                (printf (a))
-              )
-            )
+	(int a b y = 8)
+	(void proc ( int x int y )
+		( 
+		  (int a = 5 )
+	 	  ( x ++ )
+		  ( y ++ )
+		  ( a ++ )
+		  ( b ++ )
+		  (printf (x y a b))
+		)
+	)
+
+	(main ( 
+		(a = 10)
+		(b = 20)
+		(proc (a * 10) (y * 5))
+		(printf (a b y))
+	      )
+	)
+)
 )
 (print (run pgm3 nil))
 
