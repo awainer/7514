@@ -248,7 +248,7 @@
 
 (defun salida_linda2 (tray sal)
   (if (null tray)
-    (reverse sal)
+    sal
     (if (eq (caar sal) (intersec (car tray) (cadr tray))  )
        (salida_linda2 (cdr tray)  (cons (list (caar sal)  (+ 1 (cadar sal)))   (cdr sal)))
        (salida_linda2 (cdr tray)  (cons (list  (intersec (car tray) (cadr tray))  1)   sal) )
@@ -257,9 +257,16 @@
   )
 )
 ;(trace salida_linda2)
-
+(defun check_elimina_ultimo (x)
+    (if (eq 1 (cadar  x))
+        (reverse (cdr x))
+        (reverse x)
+    )
+)
+;(trace check_elimina_ultimo)
 (defun salida_linda (tray)
-     (butlast (salida_linda2 (cdr tray)  (list (list (intersec (car tray) (cadr tray)) 1))))
+     (check_elimina_ultimo  (salida_linda2 (cdr tray)  (list (list (intersec (car tray) (cadr tray)) 1))))
+     ;(butlast (salida_linda2 (cdr tray)  (list (list (intersec (car tray) (cadr tray)) 1))))
 )
 ;(trace salida_linda)
 
@@ -272,5 +279,5 @@
 )
 
 
-(print (gps_lindo  '(paseo_colon mexico)    '(eeuu defensa)  grafo))
+;(print (gps_lindo  '(paseo_colon mexico)    '(eeuu defensa)  grafo))
 ;(print (gps_lindo  '(bolivar chile)    '(eeuu azopardo)  grafo))
