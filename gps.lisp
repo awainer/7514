@@ -33,14 +33,6 @@
              )
 )
 
-(setq grafo_chico '(
-                    (1 ( 5))
-                    (2 (3))
-                    (3 (2 5))
-                    (4 (3))
-                    (5 (4))
-                   )
-)
 
 (setq  nombre_esquinas '( 
                           (1 (mexico peru)) 
@@ -139,12 +131,12 @@
         )
     )
 )
-(trace expand_tray)
+;(trace expand_tray)
 (defun vecinos_sin_visitar (tray grafo)
         (diferencia (vecinos (car tray) grafo)   tray)
 )
 
-(trace vecinos_sin_visitar)
+;(trace vecinos_sin_visitar)
 
 (defun encontre_solucion (f tray)
     (if (null tray)
@@ -155,7 +147,7 @@
         )
     )
 )
-(trace encontre_solucion)
+;(trace encontre_solucion)
 
 ;(defun flat (x) 
 ;    (if (listp (car x))
@@ -172,9 +164,9 @@
 (defun puedo_expandir (tray grafo f)
     (reduce (lambda (&optional (x nil) (y nil) ) (or x y))    (mapcar (lambda (x) (not (null (vecinos_sin_visitar x grafo))) ) tray))
 )
-(trace puedo_expandir)
-(trace vecinos_sin_visitar)
-(trace expand_level)
+;(trace puedo_expandir)
+;(trace vecinos_sin_visitar)
+;(trace expand_level)
 ;(trace expand_tray)
 ;(trace puedo_expandir)
 (defun gps (i f grafo &optional (tray (list (list i))))
@@ -207,7 +199,7 @@
         (esquina_a_id esquina (cdr grafo))
     )
 )
-(trace gps)
+;(trace gps)
 ;(trace esquina_a_id)
 ;(trace eq_esquina)
 ;(esquina_a_id '(chile bolivar) nombre_esquinas )
@@ -241,14 +233,6 @@
     )
 )
 
-;(defun misma_calle (esq1 esq2)
-;    (or
-;        (eq (car esq1) (car esq2))
-;        (eq (cdr esq1) (cdr esq2))
-;        (eq (car esq1) (cdr esq2))
-;        (eq (cdr esq1) (car esc2))
-;    )
-;)
 
 (defun intersec (e1 e2)
     (cond  
@@ -258,36 +242,35 @@
     )
 )
 
-;(trace belongs)
-;(trace intersec)
-(defun salida_linda (tray &optional (sal (list (list (intersec (car tray) (cadr tray)) 0))))
+(defun dobla (es1 es2 es3)
+
+)
+
+(defun salida_linda2 (tray sal)
   (if (null tray)
     (reverse sal)
-    (if (belongs (caar sal) (car tray))
-       (salida_linda (cdr tray)  (cons (list (caar sal)  (+ 1 (cadar sal)))   (cdr sal)))
-       (salida_linda (cdr tray)  (cons (list (caar tray)  0)   sal) )
+    (if (eq (caar sal) (intersec (car tray) (cadr tray))  )
+       (salida_linda2 (cdr tray)  (cons (list (caar sal)  (+ 1 (cadar sal)))   (cdr sal)))
+       (salida_linda2 (cdr tray)  (cons (list  (intersec (car tray) (cadr tray))  1)   sal) )
+       ;(salida_linda2 (cdr tray)  (cons (list (caar tray)  1)   sal) )
     )
   )
 )
-(trace salida_linda)
+;(trace salida_linda2)
+
+(defun salida_linda (tray)
+     (butlast (salida_linda2 (cdr tray)  (list (list (intersec (car tray) (cadr tray)) 1))))
+)
+;(trace salida_linda)
 
 (defun parse_salida_linda (sal)
     (mapcar (lambda (x)
-                (append '(Doble por) (list (car x))  '( y avance) (cdr x)  '(cuadras.))
+                (append '(Avanze  por) (list (car x)) (cdr x)  '(cuadras.))
             )
             sal
     )
 )
 
-;(trace salida_linda)
-;
-;(trace gps)
-;(trace encontre_solucion)
-(trace elimina_falso_positivo)
-;(print (gps_lindo 1 2  grafo_chico ))
 
-(print (gps_lindo  '(paseo_colon chile)    '(eeuu defensa)  grafo))
-;(print (gps  5 20  grafo))
-;(setq unr '((EEUU DEFENSA) (INDEPENDENCIA DEFENSA) (CHILE DEFENSA) (MEXICO DEFENSA) (MEXICO BALCARCE) (MEXICO PASEO_COLON) (MEXICO AZOPARDO)))
-;(print (parse_salida_linda (salida_linda unr)))
-;(intersec '(EEUU DEFENSA) '(INDEPENDENCIA DEFENSA))
+(print (gps_lindo  '(paseo_colon mexico)    '(eeuu defensa)  grafo))
+;(print (gps_lindo  '(bolivar chile)    '(eeuu azopardo)  grafo))
